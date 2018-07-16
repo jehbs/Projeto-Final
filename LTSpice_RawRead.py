@@ -452,15 +452,18 @@ def principal(Circuito):
 #if __name__ == "__main__":
     import sys
     import matplotlib.pyplot as plt
-    Variavel= 'V(vout)'
+    if Circuito =='CTSV mc + 4bitPRBS [FALHA].raw':
+        Variavel = 'V(bpo)'
+    else:
+        Variavel= 'V(vout)'
     if len(sys.argv) > 1:
         raw_filename = sys.argv[1]
     else:
         raw_filename = Circuito
-        LTR = LTSpiceRawRead(raw_filename)
-        print(LTR.get_trace_names())
-        for trace in LTR.get_trace_names():
-            print(LTR.get_trace(trace))
+    LTR = LTSpiceRawRead(raw_filename)
+    print(LTR.get_trace_names())
+    for trace in LTR.get_trace_names():
+        print(LTR.get_trace(trace))
         Vo = LTR.get_trace(Variavel)
         x = LTR.get_trace(0)  # Zero is always the X axis
         #file = open("Sallen_Vout.txt", "w")
@@ -470,30 +473,34 @@ def principal(Circuito):
         # for step in steps:
        # print("imagem")
         df = {'time': [], Variavel: [],'step': []}
-        Dados = pd.DataFrame(df)
+        Dados = []
+        time = []
         for step in range(len(steps)):
 
             ValueVar = Vo.get_wave(step)
-            print(ValueVar)
+            Dados.append(ValueVar)
+            #print(ValueVar)
             valueTime = x.get_wave(step)
-            #plt.plot(valueTime, ValueVar, label=LTR.steps[step])
-            ValueVar1 = ValueVar['T']
+            time.append(valueTime)
 
-            valueTime = valueTime.transpose()
-            Dados = Dados.append(valueTime,ValueVar ,step)
+            #df.to_csv('teste2.csv', header=None, index=None)
+            plt.plot(valueTime, ValueVar, label=LTR.steps[step])
+           #ValueVar1 = ValueVar['T']
+
+            #valueTime = valueTime.transpose()
+            #Dados = Dados.append(valueTime,ValueVar ,step)
 
             # print(steps[step])
            # file.write(Vo.get_wave(step))
-
-
         #file.close()
-
+        plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=1.0)
         plt.legend()  # order a legend.
         plt.show()
-        plt.savefig("Sallen_Vout", ext="png", close=False, verbose=True)
+
+        #plt.savefig("Sallen_Vout", ext="png", close=False, verbose=True)
 
 
         #plt.savefig("Sallen_Vout", ext="svg", close=True, verbose=True)
         #plt.savefig('Sallen_Vout.png')
-        return LTR
+        return (LTR, Dados, time)
 #mANDAR SAIR UM OBJRTO COM OS VALORES E TIM
