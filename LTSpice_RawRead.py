@@ -483,6 +483,8 @@ def principal(Circuito):
             valueTime = x.get_wave(step)
             time.append(valueTime)
 
+
+
             #df.to_csv('teste2.csv', header=None, index=None)
             plt.plot(valueTime, ValueVar, label=LTR.steps[step])
            #ValueVar1 = ValueVar['T']
@@ -495,6 +497,7 @@ def principal(Circuito):
         #file.close()
         plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=1.0)
         plt.legend()  # order a legend.
+        plt.title("dados brutos")
         plt.show()
 
         #plt.savefig("Sallen_Vout", ext="png", close=False, verbose=True)
