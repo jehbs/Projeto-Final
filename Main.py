@@ -1,6 +1,7 @@
 #Codigo principal
 import pandas as pd
 import LTSpice_RawRead as LTSpice
+import LTSpice_RawRead as LTSpice
 import tslearn
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,6 +22,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.datasets import fetch_lfw_people
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
+from tslearn import metrics
 from sklearn.decomposition import PCA
 from sklearn.svm import SVC
 from sklearn import svm
@@ -28,23 +30,20 @@ from sklearn import svm
 
 
 if __name__ == "__main__":
-    ''' circuitos = ['Sallen Key mc + 4bitPRBS [FALHA].raw', 'Nonlinear Rectfier + 4bit PRBS [FALHA] - 300 - 0.2s.raw',
-                 'Biquad Highpass Filter mc + 4bitPRBS [FALHA].raw', 'CTSV mc + 4bitPRBS [FALHA].raw']
-                 '''
+    #circuitos = ['Sallen Key mc + 4bitPRBS [FALHA].raw', 'Nonlinear Rectfier + 4bit PRBS [FALHA] - 300 - 0.2s.raw',
+     #            'Biquad Highpass Filter mc + 4bitPRBS [FALHA].raw', 'CTSV mc + 4bitPRBS [FALHA].raw']
+
     circuitos = ['Sallen Key mc + 4bitPRBS [FALHA].raw']
     conjunto = []
     conjunto1 = []
     classificacao= []
-    for i in range(11):
-        classificacao += [i+1]*300
 
     dadosReduzidos = []
-    classi = pd.DataFrame(classificacao)
     dictData = {}
     df1 = pd.DataFrame()
     df = pd.DataFrame()
     dfTime = pd.DataFrame()
-    n_paa_segments = 30
+    n_paa_segments = 50
     listaFinal =[]
     n_components = 1
     n_ts, sz, d = 1, 100, 1
@@ -52,13 +51,17 @@ if __name__ == "__main__":
         saida, dados, time = LTSpice.principal(circuito)
         print("leu")
         conjunto.append(saida)
-        #print("\nsaída\n")
+        print("\nsaída\n")
         #display(saida.axis.data) #tempo
         #display (saida.axis.step_info) #ordinal de simulação
         #display(saida.steps) #ordinal de simulação
         print("\nsaída: tempo x Vout\n")
         #display(saida._traces[10].data)
         #plt.plot(saida._traces[0].data[18559:19486], saida._traces[10].data[18559:19486])
+        import csv
+
+
+        ficheiro = pd.read_csv('out2.csv', delimiter=";",header=None)
 
         '''
         saida.traces="nome_do_nó".data
@@ -86,27 +89,42 @@ if __name__ == "__main__":
                     i += 1
             else:
                 i+=1
-
-
-
-        #print(saida)
-        dadosOriginais= pd.DataFrame(matriz)
+        file_name = circuito + "_original.csv"
+        dadosOriginais = pd.DataFrame(matriz)
+        #finaldf = pd.DataFrame(dadosOriginais)
+        #finaldf.to_csv('out2.csv', index=False, header=None, sep=';')
+        print(saida)
         #print("dados originais: {}".format(dadosOriginais))
-        file_name=circuito+"_original.csv"
-#        dadosOriginais.to_csv(file_name, sep='\t', encoding='utf-8')
-        paa = PiecewiseAggregateApproximation(n_segments=n_paa_segments)
-        scaler = TimeSeriesScalerMeanVariance()
-        dadosPaa = pd.DataFrame(matriz)
-        for i in range(0, len(dados)):
-            #plt.plot(time[i], dados[i])
-            dataset = scaler.fit_transform(dadosOriginais[i])
-            paa_dataset_inv = paa.inverse_transform(paa.fit_transform(dataset))
-            #plt.plot(paa_dataset_inv[0])
-            dadosPaa[i]=paa_dataset_inv[0]
-        listaFinal.append(dadosPaa)
+        Igual= (dadosOriginais == ficheiro).all().all()
+        #Igual= dadosOriginais.equals(ficheiro)
+        #dadosOriginais.pd.to_csv(file_name)
+        print("escreveu csv")
+        #dadosOriginais.to_csv(file_name, sep='\t', encoding='utf-8')
+
+        for j in range(1,300,1):
+
+            paa = PiecewiseAggregateApproximation(n_segments=j)
+            scaler = TimeSeriesScalerMeanVariance()
+            dadosPaa = pd.DataFrame(matriz)
+            for i in range(0, len(dados)):
+                #plt.plot(time[i], dados[i])
+                dataset = scaler.fit_transform(dadosOriginais[i])
+                paa_dataset_inv = paa.inverse_transform(paa.fit_transform(dataset))
+                #plt.plot(paa_dataset_inv[0])
+                dadosPaa[i]=paa_dataset_inv[0]
+            SimilarPaa = metrics.dtw(dadosOriginais, dadosPaa)
+            print("score PAA  {} resultado: {}".format(j, SimilarPaa))
+            listaFinal.append(dadosPaa)
 #        plt.figure();
 #        dadosPaa.plot();
 
+
+
+
+        for i in range(int(dadosPaa.shape[1]/300)):
+            classificacao += [i + 1] * 300
+
+        classi = pd.DataFrame(classificacao)
 
 
         #daqui pra baixo trocar "data" por "dadosPaa"
@@ -166,11 +184,13 @@ if __name__ == "__main__":
         print('Variância total dos primeiros 6 componentes:', explained_var6)
         #pca_results = vs.pca_results(good_data, pca) anota aí tb que vc poderia usar ICA e projeção aleatória ao invés do pca
         #display(pca_results)
-        X_train, X_test, y_train, y_test = train_test_split(dadosPaa.T, classi, test_size=0.4, random_state=0)
+        X_train, X_test, y_train, y_test = train_test_split(dadosPaa.T, classi, test_size=0.3, random_state=0)
 
         clf = svm.SVC(kernel='linear', C=1).fit(X_train, y_train)
 
-        clf.score(X_test, y_test)
+
+        print("acerto svm: ")
+        print(clf.score(X_test, y_test))
 
 
         #display(pd.DataFrame(np.round(samples, 4), columns=good_data.index.values))
@@ -189,12 +209,16 @@ if __name__ == "__main__":
         #modelo: Gaussian Mixed Models
         #não apropriado para este tipo de dados
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        import warnings
+
+        warnings.filterwarnings("ignore")
+
         from sklearn.mixture import GMM #importar outro método no lugar do GMM, talvez o dbscan
         from sklearn.metrics import silhouette_score
 
         # range_n_components = list(range(2,101))
-        range_n_components = [6]
-
+        #range_n_components = [6]
+        range_n_components = list(range(2, 101))
         for comp in range_n_components:
             clusterer = GMM(n_components=comp).fit(reduced_data) #aplicar o outro método escolhido
             preds = clusterer.predict(reduced_data)
