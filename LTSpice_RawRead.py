@@ -128,7 +128,7 @@ class Axis(DataSet):
         k = 0
         while i < len(self.data):
             if self.data[i] == self.data[0]:
-                print(k, i, self.data[i], self.data[i+1])
+                #print(k, i, self.data[i], self.data[i+1])
                 if self.data[i] == self.data[i+1]:
                     i += 1  # Needs to add one here because the data will be repeated
                 self.step_offsets[k] = i
@@ -461,9 +461,9 @@ def principal(Circuito):
     else:
         raw_filename = Circuito
     LTR = LTSpiceRawRead(raw_filename)
-    print(LTR.get_trace_names())
+    #print(LTR.get_trace_names())
     for trace in LTR.get_trace_names():
-        print(LTR.get_trace(trace))
+        #print(LTR.get_trace(trace))
         Vo = LTR.get_trace(Variavel)
         x = LTR.get_trace(0)  # Zero is always the X axis
         #file = open("Sallen_Vout.txt", "w")
@@ -486,7 +486,7 @@ def principal(Circuito):
 
 
             #df.to_csv('teste2.csv', header=None, index=None)
-            plt.plot(valueTime, ValueVar, label=LTR.steps[step])
+            #plt.plot(valueTime, ValueVar, label=LTR.steps[step])
            #ValueVar1 = ValueVar['T']
 
             #valueTime = valueTime.transpose()
@@ -495,10 +495,10 @@ def principal(Circuito):
             # print(steps[step])
            # file.write(Vo.get_wave(step))
         #file.close()
-        plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=1.0)
-        plt.legend()  # order a legend.
-        plt.title("dados brutos")
-        plt.show()
+        #plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=1.0)
+        #plt.legend()  # order a legend.
+        #plt.title("dados brutos")
+        #plt.show()
 
         #plt.savefig("Sallen_Vout", ext="png", close=False, verbose=True)
 
