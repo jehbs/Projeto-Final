@@ -33,7 +33,7 @@ if __name__ == "__main__":
     # circuitos = ['Sallen Key mc + 4bitPRBS [FALHA].raw', 'Nonlinear Rectfier + 4bit PRBS [FALHA] - 300 - 0.2s.raw',
     #            'Biquad Highpass Filter mc + 4bitPRBS [FALHA].raw', 'CTSV mc + 4bitPRBS [FALHA].raw']
 
-    circuitos = ['CTSV mc + 4bitPRBS [FALHA].raw']
+    circuitos = ['Nonlinear Rectfier + 4bit PRBS [FALHA] - 300 - 0.2s.raw']
     conjunto = []
     conjunto1 = []
     classificacao = []
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     for circuito in circuitos:
 
 
-        processa = True
+        processa = False
         if processa:
             saida, dados, time = LTSpice.principal(circuito)
             print("leu")
@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
         # print("escreveu csv")
         # dadosOriginais.to_csv(file_name, sep='\t', encoding='utf-8')
-        n_paa_segments = 100
+        n_paa_segments = 50
         print("segmentos de paa: {}".format(n_paa_segments))
         paa = PiecewiseAggregateApproximation(n_paa_segments)
         scaler = TimeSeriesScalerMeanVariance()
@@ -187,6 +187,8 @@ if __name__ == "__main__":
         X_train, X_test, y_train, y_test = train_test_split(dadosPaa, classi, test_size=0.3, random_state=0)
 
         clf = svm.SVC(kernel='linear', C=1).fit(X_train, y_train)
+
+        print(clf.predict(dadosPaa.iloc[2439,:].reshape(1, -1)))
 
         print("acerto svm: ")
         print(clf.score(X_test, y_test))
