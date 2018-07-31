@@ -25,6 +25,7 @@ from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 # from tslearn import metrics
 from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
 
 from sklearn.svm import SVC
 from sklearn import svm
@@ -106,6 +107,8 @@ if __name__ == "__main__":
         #        plt.figure();
         #        dadosPaa.plot();
         dadosPaa = dadosPaa.T
+
+
         # =-=-=-=-=-=-=-=-
         # fim da aplicação do paa
         # =-=-=-=-=-=-=-=-
@@ -158,9 +161,9 @@ if __name__ == "__main__":
         # display(pca_results)
 
         var1 = np.cumsum(np.round(pca.explained_variance_ratio_, decimals=4) * 100)
-        plt.plot(var1)
+        #plt.plot(var1)
 
-        plt.show()
+        #plt.show()
         # display(pd.DataFrame(np.round(samples, 4), columns=good_data.index.values))
         pca = PCA(n_components=3).fit(good_data)  # aplica a quantidade de componentes prevista pelo teste com as amostras
         # numero de componentes acima deve ser levantado no passo anterior!
@@ -180,7 +183,7 @@ if __name__ == "__main__":
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
         for i in range(int(dadosPaa.shape[0] / 300)):
-            classificacao += [i + 1] * 300
+            classificacao += [i] * 300
 
         classi = pd.DataFrame(classificacao)
 
@@ -188,7 +191,9 @@ if __name__ == "__main__":
 
         clf = svm.SVC(kernel='linear', C=1).fit(X_train, y_train)
 
-        print(clf.predict(dadosPaa.iloc[2439,:].reshape(1, -1)))
+        print(clf.predict(dadosPaa.iloc[2450,:].reshape(1, -1)))
+
+
 
         print("acerto svm: ")
         print(clf.score(X_test, y_test))
@@ -208,20 +213,25 @@ if __name__ == "__main__":
         from sklearn.metrics import silhouette_score
 
         # range_n_components = list(range(2,101))
+
+
         # range_n_components = [6]
-        range_n_components = list(range(2, 101))
+        range_n_components = list(range(2, 14))
         score_comp = []
         for comp in range_n_components:
             clusterer = GMM(n_components=comp).fit(reduced_data)
             preds = clusterer.predict(reduced_data)
             centers = clusterer.means_
-            sample_preds = clusterer.predict(pca_samples) #pca_samples
+            sample_preds = clusterer.predict(pca_samples)
+
+            #analisegmm = clusterer.predict(dadosPaa.iloc[360,:].reshape(1, -1))#pca_samples
+           # print(analisegmm)
             score = silhouette_score(reduced_data, preds)
             score_comp.append(score)
             print("score para {} componentes: {}".format(comp, score))
 
-        plt.plot(x=[2, 101, 1], y=score_comp)
-        plt.show()
+        #plt.plot(x=[2, 101, 1], y=score_comp)
+       # plt.show()
 
         for i, pred in enumerate(sample_preds):
             print("Sample point", i, "predicted to be in Cluster", pred)
@@ -230,6 +240,46 @@ if __name__ == "__main__":
         # display(df)
 
         print("sucesso")
+
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        # implementação do modelo de predição não supervisionado
+        # modelo: K means
+        #
+        # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+        startpts = np.zeros((11,dadosPaa.shape[1]))
+        for i in range(0,11):
+            startpts[i] = dadosPaa.iloc[150+i*300,:]
+
+
+        kmeans = KMeans(n_clusters=11, init=startpts)
+        kmeans.fit(dadosPaa)
+        print(kmeans.cluster_centers_)
+        distance = kmeans.fit_transform(dadosPaa)
+        labels = kmeans.labels_
+        print(labels)
+        import collections
+        lab = collections.Counter(labels)
+        print(lab)
+
+        print("kmeans")
+        print(kmeans.predict(dadosPaa.iloc[2450,:].reshape(1, -1)))
+
+        from sklearn.cluster import KMeans
+
+        wcss = []
+
+        for i in range(1, 15):
+            kmeans = KMeans(n_clusters=i, init='random')
+            kmeans.fit(dadosPaa)
+            print(i, kmeans.inertia_)
+            wcss.append(kmeans.inertia_)
+        '''plt.plot(range(1, 15), wcss)
+        plt.title('O Metodo Elbow')
+        plt.xlabel('Numero de Clusters')
+        plt.ylabel('WSS')  # within cluster sum of squares
+        plt.show()'''
+
     df = pd.concat(listaFinal)
     print("sucesso PAA")
     # df.to_csv('teste1.csv', header=None, index=None)
