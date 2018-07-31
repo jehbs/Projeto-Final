@@ -81,6 +81,16 @@ if __name__ == "__main__":
             dadosOriginais = pd.DataFrame(matriz)
             dados = dadosOriginais
 
+        #plt.plot(dados)
+        #plt.show()
+        #plt.plot(dados.T)
+        #plt.show()
+        #plt.subplot(4,1,1)
+        #plt.plot(dados[150])
+        #plt.subplot(4, 1, 2)
+        #plt.plot(dados.T[150])
+        #plt.show()
+
         #dadosplt = dadosOriginais.iloc[:,3000:3299]
         #plt.plot(dadosplt)
         #plt.legend()
@@ -93,7 +103,7 @@ if __name__ == "__main__":
 
         # print("escreveu csv")
         # dadosOriginais.to_csv(file_name, sep='\t', encoding='utf-8')
-        n_paa_segments = 50
+        n_paa_segments = 80
         print("segmentos de paa: {}".format(n_paa_segments))
         paa = PiecewiseAggregateApproximation(n_paa_segments)
         scaler = TimeSeriesScalerMeanVariance()
@@ -134,7 +144,8 @@ if __name__ == "__main__":
         '''
         outliers = [0]
         # elimina os outliers do dataset
-        good_data: object = dadosPaa.drop(dadosPaa.index[outliers]).reset_index(drop=True)
+        #good_data: object = dadosPaa.drop(dadosPaa.index[outliers]).reset_index(drop=True)
+        good_data = dadosPaa
         # good_data = dadosPaa.drop(dadosPaa.index[outliers]).reset_index(drop=True)
         # =-=-=-
 
@@ -154,46 +165,71 @@ if __name__ == "__main__":
         print('Variância total dos primeiros 4 componentes:', explained_var4)
         print('Variância total dos primeiros 5 componentes:', explained_var5)
         print('Variância total dos primeiros 6 componentes:', explained_var6)
-        # pca_results = vs.pca_results(good_data, pca) anota aí tb que vc poderia usar ICA e projeção aleatória ao invés do pca
-        # display(pca_results)
 
         var1 = np.cumsum(np.round(pca.explained_variance_ratio_, decimals=4) * 100)
-        plt.plot(var1)
-
-        plt.show()
-        # display(pd.DataFrame(np.round(samples, 4), columns=good_data.index.values))
         pca = PCA(n_components=3).fit(good_data)  # aplica a quantidade de componentes prevista pelo teste com as amostras
-        # numero de componentes acima deve ser levantado no passo anterior!
-
         reduced_data = pca.fit_transform(good_data)  # aplicação do pca
         pca_samples = pca.fit_transform(samples)  # idem
 
-        # reduced_data = pd.DataFrame(reduced_data, columns=['Dimension 1', 'Dimension 2','Dimension 3','Dimension
-        # 4','Dimension 5','Dimension 6'])
         reduced_data: DataFrame = pd.DataFrame(reduced_data, columns=['Dimension 1', 'Dimension 2', 'Dimension 3'])
-        # reduced_data = pd.DataFrame(reduced_data, columns=['Dimension 1', 'Dimension 2', 'Dimension 3'])
-        display(reduced_data)
+        #display(reduced_data)
 
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         # implementação do modelo de predição supervisionado
         # modelo: SVM
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-        for i in range(int(dadosPaa.shape[0] / 300)):
+        import warnings
+        warnings.filterwarnings("ignore")
+
+        from sklearn.metrics import fbeta_score, accuracy_score
+        from sklearn.ensemble import AdaBoostClassifier
+        from sklearn.tree import DecisionTreeClassifier
+        from sklearn.ensemble import RandomForestClassifier
+        from sklearn.naive_bayes import GaussianNB
+        from sklearn.neighbors import KNeighborsClassifier
+        from sklearn.linear_model import SGDClassifier
+        from sklearn.linear_model import LogisticRegression
+
+        for i in range(0,int(dadosPaa.shape[0] / 300)):
             classificacao += [i + 1] * 300
 
         classi = pd.DataFrame(classificacao)
-
+        #plt.plot(classi)
+        #plt.show()
         X_train, X_test, y_train, y_test = train_test_split(dadosPaa, classi, test_size=0.3, random_state=0)
 
-        clf = svm.SVC(kernel='linear', C=1).fit(X_train, y_train)
+        classifiers = [DecisionTreeClassifier(random_state=20),AdaBoostClassifier(random_state=20),
+                       svm.SVC(kernel='linear', C=1, random_state=20),RandomForestClassifier(random_state=20),
+                       GaussianNB(),KNeighborsClassifier(),SGDClassifier(random_state=20),
+                       LogisticRegression(random_state=20)]
+        for clf in classifiers:
+            print("\nClassificador: {}\n".format(clf.__class__.__name__))
+            #clf = svm.SVC(kernel='linear', C=1, random_state=20).fit(X_train, y_train)
+            clf = clf.fit(X_train, y_train)
+            clf_test_predictions = clf.predict(X_test)
+            clf_train_predictions = clf.predict(X_train)
 
-        print(clf.predict(dadosPaa.iloc[2439,:].reshape(1, -1)))
+            acc_train_results = accuracy_score(y_train, clf_train_predictions)
+            acc_test_results = accuracy_score(y_test, clf_test_predictions)
+
+            fscore_train_results = fbeta_score(y_train, clf_train_predictions, beta=0.5, average='macro')
+            fscore_test_results = fbeta_score(y_test, clf_test_predictions, beta=0.5, average='macro')
+
+            print("acurácia teste: {} \t acurácia treino: {} \n fscore teste: {} \t fscore treino: {} \n".format(
+                acc_test_results,acc_train_results,fscore_test_results,fscore_train_results))
+            for ct in range (100):
+                rd = np.random.randint(0,3300)
+                print("Predição de {}: {}".format(rd,clf.predict(dadosPaa.iloc[rd, :].values.reshape(1, -1))))
+
+        '''
+        print("Predição: {}".format(clf.predict(dadosPaa.iloc[1199,:].reshape(1, -1))))
 
         print("acerto svm: ")
         print(clf.score(X_test, y_test))
         print("acerto svm geral: ")
         print(clf.score(dadosOriginais.T, classi))
+        '''
 
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         # implementação do modelo de predição não supervisionado
@@ -209,7 +245,7 @@ if __name__ == "__main__":
 
         # range_n_components = list(range(2,101))
         # range_n_components = [6]
-        range_n_components = list(range(2, 101))
+        range_n_components = [100]
         score_comp = []
         for comp in range_n_components:
             clusterer = GMM(n_components=comp).fit(reduced_data)
@@ -218,13 +254,10 @@ if __name__ == "__main__":
             sample_preds = clusterer.predict(pca_samples) #pca_samples
             score = silhouette_score(reduced_data, preds)
             score_comp.append(score)
-            print("score para {} componentes: {}".format(comp, score))
+        print("score para {} componentes: {}".format(comp, score))
 
-        plt.plot(x=[2, 101, 1], y=score_comp)
-        plt.show()
-
-        for i, pred in enumerate(sample_preds):
-            print("Sample point", i, "predicted to be in Cluster", pred)
+        #for i, pred in enumerate(sample_preds):
+        #    print("Sample point", i, "predicted to be in Cluster", pred)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         # conjunto.append(dadosPaa)
         # display(df)
