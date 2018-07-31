@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
         # print("escreveu csv")
         # dadosOriginais.to_csv(file_name, sep='\t', encoding='utf-8')
-        n_paa_segments = 80
+        n_paa_segments = 100
         print("segmentos de paa: {}".format(n_paa_segments))
         paa = PiecewiseAggregateApproximation(n_paa_segments)
         scaler = TimeSeriesScalerMeanVariance()
@@ -167,11 +167,11 @@ if __name__ == "__main__":
         print('Variância total dos primeiros 6 componentes:', explained_var6)
 
         var1 = np.cumsum(np.round(pca.explained_variance_ratio_, decimals=4) * 100)
-        pca = PCA(n_components=3).fit(good_data)  # aplica a quantidade de componentes prevista pelo teste com as amostras
+        pca = PCA(n_components=20).fit(good_data)  # aplica a quantidade de componentes prevista pelo teste com as amostras
         reduced_data = pca.fit_transform(good_data)  # aplicação do pca
         pca_samples = pca.fit_transform(samples)  # idem
 
-        reduced_data: DataFrame = pd.DataFrame(reduced_data, columns=['Dimension 1', 'Dimension 2', 'Dimension 3'])
+        reduced_data: DataFrame = pd.DataFrame(reduced_data)
         #display(reduced_data)
 
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -198,11 +198,13 @@ if __name__ == "__main__":
         #plt.plot(classi)
         #plt.show()
         X_train, X_test, y_train, y_test = train_test_split(dadosPaa, classi, test_size=0.3, random_state=0)
-
+        '''
         classifiers = [DecisionTreeClassifier(random_state=20),AdaBoostClassifier(random_state=20),
                        svm.SVC(kernel='linear', C=1, random_state=20),RandomForestClassifier(random_state=20),
                        GaussianNB(),KNeighborsClassifier(),SGDClassifier(random_state=20),
                        LogisticRegression(random_state=20)]
+        '''
+        classifiers = [GaussianNB()]
         for clf in classifiers:
             print("\nClassificador: {}\n".format(clf.__class__.__name__))
             #clf = svm.SVC(kernel='linear', C=1, random_state=20).fit(X_train, y_train)
@@ -245,7 +247,7 @@ if __name__ == "__main__":
 
         # range_n_components = list(range(2,101))
         # range_n_components = [6]
-        range_n_components = [100]
+        range_n_components = list(range(2,12))
         score_comp = []
         for comp in range_n_components:
             clusterer = GMM(n_components=comp).fit(reduced_data)
@@ -256,8 +258,8 @@ if __name__ == "__main__":
             score_comp.append(score)
         print("score para {} componentes: {}".format(comp, score))
 
-        #for i, pred in enumerate(sample_preds):
-        #    print("Sample point", i, "predicted to be in Cluster", pred)
+        for i, pred in enumerate(preds):
+            print("Sample point", i, "predicted to be in Cluster", pred)
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         # conjunto.append(dadosPaa)
         # display(df)
