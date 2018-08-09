@@ -32,7 +32,7 @@ __author__ = "Nuno Canto Brum <nuno.brum@gmail.com>"
 __copyright__ = "Copyright 2017, Fribourg Switzerland"
 
 import pandas as pd
-
+import re
 from binascii import b2a_hex
 from struct import unpack
 try:
@@ -128,7 +128,7 @@ class Axis(DataSet):
         k = 0
         while i < len(self.data):
             if self.data[i] == self.data[0]:
-                print(k, i, self.data[i], self.data[i+1])
+                #print(k, i, self.data[i], self.data[i+1])
                 if self.data[i] == self.data[i+1]:
                     i += 1  # Needs to add one here because the data will be repeated
                 self.step_offsets[k] = i
@@ -236,7 +236,7 @@ class LTSpiceRawRead(object):
             for tag in self.header_lines:
                 if line.startswith(tag):
                     self.raw_params[tag] = line[len(tag) + 1:-1]  # Adding 1 to account with the colon after the tag
-                    # print(ftag)
+                    # #print(ftag)
                     break
             else:
                 raw_file.close()
@@ -261,11 +261,11 @@ class LTSpiceRawRead(object):
         self._traces = []
         self.steps = None
         self.axis = None  # Creating the axis
-        # print("Reading Variables")
+        # #print("Reading Variables")
 
         for ivar in range(self.nVariables):
             line = raw_file.readline().decode()[:-1]
-            # print(line)
+            # #print(line)
             dummy, n, name, var_type = line.split("\t")
             if ivar == 0 and self.nVariables > 1:
                 self.axis = Axis(name, var_type, self.nPoints)
@@ -335,14 +335,14 @@ class LTSpiceRawRead(object):
                 first_var = True
                 for var in self._traces:
                     line = raw_file.readline().decode()
-                    # print(line)
+                    # #print(line)
 
                     if first_var:
                         first_var = False
                         spoint = line.split("\t", 1)[0]
-                        # print(spoint)
+                        # #print(spoint)
                         if point != int(spoint):
-                            print("Error Reading File")
+                            #print("Error Reading File")
                             break
                         value = float(line[len(spoint):-1])
                     else:
@@ -461,25 +461,27 @@ def principal(Circuito):
     else:
         raw_filename = Circuito
     LTR = LTSpiceRawRead(raw_filename)
-    print(LTR.get_trace_names())
+    #print(LTR.get_trace_names())
     for trace in LTR.get_trace_names():
-        print(LTR.get_trace(trace))
+        #print(LTR.get_trace(trace))
         Vo = LTR.get_trace(Variavel)
         x = LTR.get_trace(0)  # Zero is always the X axis
         #file = open("Sallen_Vout.txt", "w")
-        #print("escrita com sucesso")
+        ##print("escrita com sucesso")
         # steps = LTR.get_steps(ana=4.0)
         steps = LTR.get_steps()
         # for step in steps:
-       # print("imagem")
+       # #print("imagem")
         df = {'time': [], Variavel: [],'step': []}
         Dados = []
         time = []
+        fig0 = plt.figure()
+        plt.title("dados brutos")
         for step in range(len(steps)):
 
             ValueVar = Vo.get_wave(step)
             Dados.append(ValueVar)
-            #print(ValueVar)
+            ##print(ValueVar)
             valueTime = x.get_wave(step)
             time.append(valueTime)
 
@@ -492,13 +494,15 @@ def principal(Circuito):
             #valueTime = valueTime.transpose()
             #Dados = Dados.append(valueTime,ValueVar ,step)
 
-            # print(steps[step])
+            # #print(steps[step])
            # file.write(Vo.get_wave(step))
         #file.close()
-        plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=1.0)
-        plt.legend()  # order a legend.
-        plt.title("dados brutos")
-        plt.show()
+        #plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=1.0)
+        #plt.legend()  # order a legend.
+        #fig0.show()
+        name = "brutos_{}".format(Circuito)
+        name = re.sub('\.', '', name)
+        plt.savefig(name, bbox_inches='tight')
 
         #plt.savefig("Sallen_Vout", ext="png", close=False, verbose=True)
 

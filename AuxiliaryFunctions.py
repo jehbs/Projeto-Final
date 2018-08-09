@@ -2,13 +2,14 @@
 # =-=-=-=-=-=-=-=-
 # Projeto de Conclusão de Curso
 # Autor: Jéssica Barbosa de Souza
-# Descrição : Gerenciamento de todos os métodos aplicados. Contem todas as funções aplicadas.
+# Descrição : Gerenciamento de todos os métodos aplicados. Contém todas as funções aplicadas.
 # =-=-=-=-=-=-=-=-
 
 import pandas as pd
 from pandas import DataFrame
 import numpy as np
 import matplotlib.pyplot as plt
+import collections
 
 from tslearn.preprocessing import TimeSeriesScalerMeanVariance
 from tslearn.piecewise import PiecewiseAggregateApproximation
@@ -18,12 +19,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import fbeta_score, accuracy_score
 from sklearn.metrics import silhouette_score
 
-from sklearn.svm import SVC
-from sklearn import svm
-
-
-def ApplyPaa(n_paa_segments,seq,df):
-
+def ApplyPaa(n_paa_segments,seq,df,ckt):
+    circuito = ckt
     listaFinal = []
     print("segmentos de paa: {}".format(n_paa_segments))
     paa = PiecewiseAggregateApproximation(n_paa_segments)
@@ -36,15 +33,17 @@ def ApplyPaa(n_paa_segments,seq,df):
     listaFinal.append(dadosPaa)
     dadosPaa = dadosPaa.T
 
-    plt.subplot(211)
+    fig1_1 = plt.figure()
     plt.plot(dadosPaa)
-    plt.title('Com PAA Sallen Key')
-
+    plt.title("{} com PAA".format(circuito))
+    name = "PAA_{}".format(circuito)
+    try:plt.savefig(name, bbox_inches='tight')
+    except: plt.savefig(name)
 
     return dadosPaa
 
 
-def ApplyPca(df,samples):
+def ApplyPca(df,samples,ckt):
 
     pca = PCA(n_components=len(df.columns)).fit(df)
     explained_var = pca.explained_variance_ratio_  # variancia explicada do PCA
@@ -53,22 +52,32 @@ def ApplyPca(df,samples):
         print("Variância total dos primeiros {} componentes: {}".format(exp_var_count, sum_var))
 
     var1 = np.cumsum(np.round(pca.explained_variance_ratio_, decimals=4) * 100)
-    #plt.plot(var1)
-    #plt.show()
     pca = PCA(n_components=20).fit(df)  # aplica a quantidade de componentes prevista pelo teste com as amostras
     reduced_data = pca.fit_transform(df)  # aplicação do pca
-    pca_samples = pca.fit_transform(samples)  # idem, ams ans amostras
+    pca_samples = pca.fit_transform(samples)  # idem, mas nas amostras
 
     reduced_data: DataFrame = pd.DataFrame(reduced_data)
 
-    plt.subplot(212)
+    fig3 = plt.figure()
     plt.plot(reduced_data)
-    plt.title('Com PCA Sallen Key')
-    plt.show()
+    plt.title("{} com PCA ".format(ckt))
+    name = "PCA_{}".format(ckt)
+    try:plt.savefig(name, bbox_inches='tight')
+    except: plt.savefig(name)
 
+    fig4 = plt.figure()
+    plt.plot(var1)
+    plt.title('Variância acumulada {} '.format(ckt))
+    name = "acc_var_{}".format(ckt)
+    try:plt.savefig(name, bbox_inches='tight')
+    except: plt.savefig(name)
+
+    fig5 = plt.figure()
     plt.plot(pca_samples)
-    plt.title('Amostras para validação de resultados')
-    plt.show()
+    plt.title("Amostras para validação de resultados {} ".format(ckt))
+    name = "pca_samples_{}".format(ckt)
+    try:plt.savefig(name, bbox_inches='tight')
+    except: plt.savefig(name)
 
     return(reduced_data,pca_samples)
 
@@ -126,7 +135,7 @@ def UnsupervisedPreds(df,samples,clt,components):
     return (clusterer,preds)
 
 
-def UnsupervidedKmens(df, sample):
+def UnsupervisedKmens(df, sample):
 
     from sklearn.cluster import KMeans
     dadosPaa = df
@@ -138,15 +147,15 @@ def UnsupervidedKmens(df, sample):
 
     kmeans = KMeans(n_clusters=components, init=startpts)
     kmeans.fit(dadosPaa)
-    #print(kmeans.cluster_centers_)
     distance = kmeans.fit_transform(dadosPaa)
     labels = kmeans.labels_
-    import collections
     lab = collections.Counter(labels)
     #print(lab)
-
     #print("kmeans")
     pred = kmeans.predict(sample)
+    #pred = kmeans.predict(df)
+    score = silhouette_score(sample, pred)
+    print("score do KMeans: {}".format(score))
 
     return (pred,kmeans)
 
