@@ -22,7 +22,7 @@ from sklearn.metrics import silhouette_score
 def ApplyPaa(n_paa_segments,seq,df,ckt):
     circuito = ckt
     listaFinal = []
-    print("segmentos de paa: {}".format(n_paa_segments))
+    print("Quantidade de segmentos de PAA: {}".format(n_paa_segments))
     paa = PiecewiseAggregateApproximation(n_paa_segments)
     scaler = TimeSeriesScalerMeanVariance()
     dadosPaa = pd.DataFrame(seq)
@@ -35,7 +35,7 @@ def ApplyPaa(n_paa_segments,seq,df,ckt):
 
     fig1_1 = plt.figure()
     plt.plot(dadosPaa)
-    plt.title("{} com PAA".format(circuito))
+    #plt.title("{} com PAA".format(circuito))
     name = "PAA_{}".format(circuito)
     try:plt.savefig(name, bbox_inches='tight')
     except: plt.savefig(name)
@@ -60,21 +60,21 @@ def ApplyPca(df,samples,ckt):
 
     fig3 = plt.figure()
     plt.plot(reduced_data)
-    plt.title("{} com PCA ".format(ckt))
+    #plt.title("{} com PCA ".format(ckt))
     name = "PCA_{}".format(ckt)
     try:plt.savefig(name, bbox_inches='tight')
     except: plt.savefig(name)
 
     fig4 = plt.figure()
     plt.plot(var1)
-    plt.title('Variância acumulada {} '.format(ckt))
+    #plt.title('Variância acumulada {} '.format(ckt))
     name = "acc_var_{}".format(ckt)
     try:plt.savefig(name, bbox_inches='tight')
     except: plt.savefig(name)
 
     fig5 = plt.figure()
     plt.plot(pca_samples)
-    plt.title("Amostras para validação de resultados {} ".format(ckt))
+    #plt.title("Amostras para validação de resultados {} ".format(ckt))
     name = "pca_samples_{}".format(ckt)
     try:plt.savefig(name, bbox_inches='tight')
     except: plt.savefig(name)
@@ -135,7 +135,7 @@ def UnsupervisedPreds(df,samples,clt,components):
     return (clusterer,preds)
 
 
-def UnsupervisedKmens(df, sample):
+def UnsupervisedKmeans(df, sample):
 
     from sklearn.cluster import KMeans
     dadosPaa = df
@@ -155,7 +155,7 @@ def UnsupervisedKmens(df, sample):
     pred = kmeans.predict(sample)
     #pred = kmeans.predict(df)
     score = silhouette_score(sample, pred)
-    print("score do KMeans: {}".format(score))
+    print("Score do KMeans: {}".format(score))
 
     return (pred,kmeans)
 

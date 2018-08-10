@@ -10,6 +10,7 @@ import AuxiliaryFunctions
 import pandas as pd
 from pandas import DataFrame
 import re
+import os
 
 import LTSpice_RawRead as LTSpice
 import matplotlib.pyplot as plt
@@ -23,6 +24,7 @@ if __name__ == "__main__":
                 'Biquad Highpass Filter mc + 4bitPRBS [FALHA].raw', 'CTSV mc + 4bitPRBS [FALHA].raw']
 
     #circuitos = ['Biquad Highpass Filter mc + 4bitPRBS [FALHA].raw']
+    #circuitos = ['CTSV mc + 4bitPRBS [FALHA].raw']
 
     conjunto = []
     conjunto1 = []
@@ -37,13 +39,15 @@ if __name__ == "__main__":
 
     for circuito in circuitos:
         print("Circuito: {}".format(circuito))
+        csv = re.sub('\.', '', circuito)
+        csv = "{}.csv".format(csv)
         # =-=-=-=-=-=-=-=-
         # início da leitura do arquivo
         # =-=-=-=-=-=-=-=-
-        processa = True
-        if processa:
+
+        if not os.path.isfile(csv):
+            print("Obtendo dados do arquivo '{}' .".format(circuito))
             saida, dados, time = LTSpice.principal(circuito)
-            print("leu")
             conjunto.append(saida)
             MaiorIndice = 0
             for dado in dados:
@@ -66,16 +70,21 @@ if __name__ == "__main__":
                 else:
                     i += 1
             dadosOriginais = pd.DataFrame(matriz)
+            dadosOriginais.to_csv(csv)
         else:
-            matriz = pd.read_csv('Sallen Key mc + 4bitPRBS [FALHA].csv', delimiter=";", header=None)
-            conjunto.append(matriz)
-            dadosOriginais = pd.DataFrame(matriz)
+            print("Obtendo dados do arquivo '{}' .".format(csv))
+            dadosOriginais = pd.read_csv(csv, delimiter=";", header=None)
+            #conjunto.append(matriz)
+            #dadosOriginais = pd.DataFrame(matriz)
+
+        print("Leitura do arquivo terminada.\nSalvando características do circuito...")
 
         circuito = re.sub('\.', '', circuito)
+        circuito = re.sub(' ', '_', circuito)
         fig = plt.figure()
         org = plt.plot(dadosOriginais)
         plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=1.0)
-        plt.title("Dados pré processados {} ".format(circuito))
+        #plt.title("Dados pré processados {} ".format(circuito))
         name = "dadosPreProc_{}".format(circuito)
         try:plt.savefig(name, bbox_inches='tight')
         except: plt.savefig(name)
@@ -83,12 +92,14 @@ if __name__ == "__main__":
         # =-=-=-=-=-=-=-=-
         # Aplicação do Paa
         # =-=-=-=-=-=-=-=-
+        print("\nIniciando a aplicação do PAA")
         n_paa_segments = 100
         dadosPaa = AuxiliaryFunctions.ApplyPaa(n_paa_segments, matriz, dadosOriginais,circuito)
 
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         # Aplicação do PCA
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        print("\nIniciando a aplicação do PCA")
         ran = np.random.randint(dadosPaa.shape[0], size=(int(0.1 * dadosPaa.shape[0])))
         samples = pd.DataFrame(dadosPaa.loc[ran], columns=dadosPaa.keys()).reset_index(
             drop=True)  # amostras para treino
@@ -98,7 +109,7 @@ if __name__ == "__main__":
         fig2 = plt.figure()
         plt.plot(reduced_data.T, '*')
         plt.tight_layout(pad=0.5, w_pad=0.5, h_pad=1.0)
-        plt.title("Dados pós PCA {} ".format(circuito))
+        #plt.title("Dados pós PCA {} ".format(circuito))
         name = "dadosPosPCA_{}".format(circuito)
         try:plt.savefig(name, bbox_inches='tight')
         except: plt.savefig(name)
@@ -107,6 +118,7 @@ if __name__ == "__main__":
         # implementação do modelo de predição supervisionado
         # modelo: 8 modelos diferentes; em destaque: NaiveBayes
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        print("\nIniciando a aplicação dos métodos de aprendizagem supervisionados")
         from sklearn.ensemble import AdaBoostClassifier
         from sklearn.tree import DecisionTreeClassifier
         from sklearn.ensemble import RandomForestClassifier
@@ -120,6 +132,7 @@ if __name__ == "__main__":
                        svm.SVC(kernel='linear', C=1, random_state=20),RandomForestClassifier(random_state=20),
                        GaussianNB(),KNeighborsClassifier(),SGDClassifier(random_state=20),
                        LogisticRegression(random_state=20)]
+
         k=0
         #classifiers = [GaussianNB()]
         for clf in classifiers:
@@ -127,11 +140,11 @@ if __name__ == "__main__":
             fscore_train_results, fscore_test_results, \
             clfs = AuxiliaryFunctions.SupervisedPreds(dadosPaa, clf)
 
-            print("acurácia teste: {} \t acurácia treino: {} \n fscore teste: {} \t fscore treino: {} \n".format(
+            print("Acurácia teste: {}\t Acurácia treino: {}\nFscore teste: {}\t Fscore treino: {}\n".format(
                 acc_test_results, acc_train_results, fscore_test_results, fscore_train_results))
             for ct in range(10):
                 rd = np.random.randint(0, 3300)
-                print("Predição de {}: {}".format(rd, clfs.predict(dadosPaa.iloc[rd, :].values.reshape(1, -1))))
+                print("Predição do ponto {}: {}".format(rd, clfs.predict(dadosPaa.iloc[rd, :].values.reshape(1, -1))))
 
             for j in range(3300):
                 verificacao[k][j]= clfs.predict(dadosPaa.iloc[j, :].values.reshape(1, -1))
@@ -139,7 +152,7 @@ if __name__ == "__main__":
             fig6 = plt.figure()
 
             plt.plot(verificacao[k-1].T, '*')
-            plt.title("{} para {}".format(clf.__class__.__name__,circuito))
+            #plt.title("{} para {}".format(clf.__class__.__name__,circuito))
 
             #fig6.show()
             name = "{}_{}".format(clf.__class__.__name__,circuito,circuito)
@@ -151,16 +164,18 @@ if __name__ == "__main__":
         # implementação do modelo de predição não supervisionado
         # modelo: Gaussian Mixed Models
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        print("\nIniciando a aplicação dos métodos de aprendizagem não-supervisionados")
         from sklearn.mixture import GMM  # importar outro método no lugar do GMM, talvez o dbscan
 
         range_n_components = list(range(2, 12))
         clusterers = [GMM()]
         for clt in clusterers:
+            print("Classificador: {}".format(clt.__class__.__name__))
             clts, preds = AuxiliaryFunctions.UnsupervisedPreds(reduced_data, pca_samples, clt, range_n_components)
 
             for ct in range(10):
                 rd = np.random.randint(0, 3300)
-                print("Predição de {}: {}".format(rd, clts.predict(reduced_data.iloc[rd, :].values.reshape(1, -1))))
+                print("Predição do ponto {}: {}".format(rd, clts.predict(reduced_data.iloc[rd, :].values.reshape(1, -1))))
 
             for j in range(3300):
                 verificacao[k][j]= clts.predict(reduced_data.iloc[j, :].values.reshape(1, -1))
@@ -170,10 +185,10 @@ if __name__ == "__main__":
         # implementação do modelo de predição não supervisionado
         # modelo: Kmeans
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        print("Classificador: KMeans")
+        preds, clts = AuxiliaryFunctions.UnsupervisedKmeans(reduced_data,pca_samples)
 
-        preds, clts = AuxiliaryFunctions.UnsupervisedKmens(reduced_data,pca_samples)
-
-        print("k do kmeans: {}".format(k))
+        #print("k do kmeans: {}".format(k))
         for ct in range(10):
             rd = np.random.randint(0, 3300)
             print("Predição de {}: {}".format(rd, clts.predict(reduced_data.iloc[rd, :].values.reshape(1, -1))))
@@ -184,50 +199,101 @@ if __name__ == "__main__":
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         # implementação dos teste de validação de resultado
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-        moda = [0,0,0,0,0,0,0,0,0,0,0]
+        modaKmeans = [0,0,0,0,0,0,0,0,0,0,0]
+        modaGMM = [0,0,0,0,0,0,0,0,0,0,0]
+        modaLogReg = [0,0,0,0,0,0,0,0,0,0,0]
+        modaSGD = [0,0,0,0,0,0,0,0,0,0,0]
+        modaKNeigh = [0,0,0,0,0,0,0,0,0,0,0]
+        modaNB = [0,0,0,0,0,0,0,0,0,0,0]
+        modaRFC = [0,0,0,0,0,0,0,0,0,0,0]
+        modaSVC = [0,0,0,0,0,0,0,0,0,0,0]
+        modaAda = [0,0,0,0,0,0,0,0,0,0,0]
+        modaDTC = [0,0,0,0,0,0,0,0,0,0,0]
 
         verifica = pd.DataFrame(verificacao)
 
+        linhaKMeans = verifica.iloc[k - 1]
+        linhaGMM = verifica.iloc[k - 2]
+        linhaLogisticRegression = verifica.iloc[k - 3]
+        linhaSGDClassifier = verifica.iloc[k - 4]
+        linhaKNeighborsClassifier = verifica.iloc[k - 5]
+        linhaGaussianNB = verifica.iloc[k - 6]
+        linhaRandomForestClassifier = verifica.iloc[k - 7]
+        linhaSVC = verifica.iloc[k - 8]
+        linhaAdaBoostClassifier = verifica.iloc[k - 9]
+        linhaDecisionTreeClassifier = verifica.iloc[k - 10]
+
         for m in range(0,11):
-            modLinha = verifica.iloc[k-1]
-            mod = modLinha[m*300:299+m*300].mode()[0]
-            moda[m] = mod
-        print("moda: \n{}".format(moda))
+            modKmeans = linhaKMeans[m * 300:299 + m * 300].mode()[0]
+            modGMM = linhaGMM[m * 300:299 + m * 300].mode()[0]
+            modLogReg = linhaLogisticRegression[m * 300:299 + m * 300].mode()[0]
+            modSGD = linhaSGDClassifier[m * 300:299 + m * 300].mode()[0]
+            modKNeigh = linhaKNeighborsClassifier[m * 300:299 + m * 300].mode()[0]
+            modNB = linhaGaussianNB[m * 300:299 + m * 300].mode()[0]
+            modRFC = linhaRandomForestClassifier[m * 300:299 + m * 300].mode()[0]
+            modSVC = linhaSVC[m * 300:299 + m * 300].mode()[0]
+            modAda = linhaAdaBoostClassifier[m * 300:299 + m * 300].mode()[0]
+            modDTC = linhaDecisionTreeClassifier[m * 300:299 + m * 300].mode()[0]
+            #
+            modaKmeans[m] = modKmeans
+            modaGMM[m] = modGMM
+            modaLogReg[m] = modLogReg
+            modaSGD[m] = modSGD
+            modaKNeigh[m] = modKNeigh
+            modaNB[m] = modNB
+            modaRFC[m] = modRFC
+            modaSVC[m] = modSVC
+            modaAda[m] = modAda
+            modaDTC[m] = modDTC
+
+        modas = pd.DataFrame({"modaKmeans":modaKmeans,"modaGMM":modaGMM,"modaLogReg":modaLogReg,
+                             "modaSGD":modaSGD,"modaKNeigh":modaKNeigh,"modaNB":modaNB,"modaRFC":modaRFC,
+                             "modaSVC":modaSVC,"modaAda":modaAda,"modaDTC":modaDTC})
+        print("moda: \n{}".format(modas))
 
         for n in range(3300):
             #for v in range(0,10,1):
             #    if (modLinha[n]) == moda[v]:
             #        verifica.iloc[k-1][n] = v+1
 
-            if (modLinha[n]) == moda[0]:
-                verifica.iloc[k-1][n] = 1
-            elif (modLinha[n]) == moda[1]:
-                verifica.iloc[k-1][n] = 2
-            elif (modLinha[n]) == moda[2]:
-                verifica.iloc[k-1][n] = 3
-            elif (modLinha[n]) == moda[3]:
-                verifica.iloc[k-1][n] = 4
-            elif (modLinha[n]) == moda[4]:
-                verifica.iloc[k-1][n] = 5
-            elif (modLinha[n]) == moda[5]:
-                verifica.iloc[k-1][n] = 6
-            elif (modLinha[n]) == moda[6]:
-                verifica.iloc[k-1][n] = 7
-            elif (modLinha[n]) == moda[7]:
-                verifica.iloc[k-1][n] = 8
-            elif (modLinha[n]) == moda[8]:
-                verifica.iloc[k-1][n] = 9
-            elif (modLinha[n]) == moda[9]:
-                verifica.iloc[k-1][n] = 10
-            elif (modLinha[n]) == moda[10]:
-                verifica.iloc[k-1][n] = 11
+            if (linhaKMeans[n]) == modaKmeans[0]:
+                verifica.iloc[k - 1][n] = 1
+            elif (linhaKMeans[n]) == modaKmeans[1]:
+                verifica.iloc[k - 1][n] = 2
+            elif (linhaKMeans[n]) == modaKmeans[2]:
+                verifica.iloc[k - 1][n] = 3
+            elif (linhaKMeans[n]) == modaKmeans[3]:
+                verifica.iloc[k - 1][n] = 4
+            elif (linhaKMeans[n]) == modaKmeans[4]:
+                verifica.iloc[k - 1][n] = 5
+            elif (linhaKMeans[n]) == modaKmeans[5]:
+                verifica.iloc[k - 1][n] = 6
+            elif (linhaKMeans[n]) == modaKmeans[6]:
+                verifica.iloc[k - 1][n] = 7
+            elif (linhaKMeans[n]) == modaKmeans[7]:
+                verifica.iloc[k - 1][n] = 8
+            elif (linhaKMeans[n]) == modaKmeans[8]:
+                verifica.iloc[k - 1][n] = 9
+            elif (linhaKMeans[n]) == modaKmeans[9]:
+                verifica.iloc[k - 1][n] = 10
+            elif (linhaKMeans[n]) == modaKmeans[10]:
+                verifica.iloc[k - 1][n] = 11
 
         fig7 = plt.figure()
-        plt.plot(verifica.iloc[1].T, '*')
-        plt.title("Classificação do KMeans {} ".format(circuito))
+        plt.plot(verifica.iloc[k-1].T, '*')
+        #plt.title("Classificação do KMeans {} ".format(circuito))
         name = "KMeans_{}".format(circuito)
         try:plt.savefig(name, bbox_inches='tight')
         except: plt.savefig(name)
+
+        fig8 = plt.figure()
+        plt.plot(verifica.iloc[k - 2].T, '*')
+        #plt.title("Classificação do GMM {} ".format(circuito))
+        name = "GMM_{}".format(circuito)
+        try:
+            plt.savefig(name, bbox_inches='tight')
+        except:
+            plt.savefig(name)
 
         k = 0
         conjunto = []
