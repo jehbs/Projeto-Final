@@ -18,13 +18,14 @@ import numpy as np
 from sklearn.svm import SVC
 from sklearn import svm
 
-
 if __name__ == "__main__":
+
     circuitos = ['Sallen Key mc + 4bitPRBS [FALHA].raw', 'Nonlinear Rectfier + 4bit PRBS [FALHA] - 300 - 0.2s.raw',
                 'Biquad Highpass Filter mc + 4bitPRBS [FALHA].raw', 'CTSV mc + 4bitPRBS [FALHA].raw']
 
     #circuitos = ['Biquad Highpass Filter mc + 4bitPRBS [FALHA].raw']
     #circuitos = ['CTSV mc + 4bitPRBS [FALHA].raw']
+    #circuitos = ['Sallen Key mc + 4bitPRBS [FALHA].raw']
 
     conjunto = []
     conjunto1 = []
@@ -36,6 +37,7 @@ if __name__ == "__main__":
     dfTime = pd.DataFrame()
     listaFinal, dados = [], []
     n_ts, sz, d = 1, 100, 1
+    matriz = None
 
     for circuito in circuitos:
         print("Circuito: {}".format(circuito))
@@ -70,12 +72,12 @@ if __name__ == "__main__":
                 else:
                     i += 1
             dadosOriginais = pd.DataFrame(matriz)
-            dadosOriginais.to_csv(csv)
+            dadosOriginais.to_csv(csv,mode='w',sep=';')
         else:
             print("Obtendo dados do arquivo '{}' .".format(csv))
-            dadosOriginais = pd.read_csv(csv, delimiter=";", header=None)
+            matriz = pd.read_csv(csv,sep=';')
             #conjunto.append(matriz)
-            #dadosOriginais = pd.DataFrame(matriz)
+            dadosOriginais = pd.DataFrame(matriz)
 
         print("Leitura do arquivo terminada.\nSalvando características do circuito...")
 
@@ -134,7 +136,7 @@ if __name__ == "__main__":
                        LogisticRegression(random_state=20)]
 
         k=0
-        #classifiers = [GaussianNB()]
+        classifiers = [GaussianNB()]
         for clf in classifiers:
             acc_train_results, acc_test_results, \
             fscore_train_results, fscore_test_results, \
@@ -199,16 +201,29 @@ if __name__ == "__main__":
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         # implementação dos teste de validação de resultado
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-        modaKmeans = [0,0,0,0,0,0,0,0,0,0,0]
-        modaGMM = [0,0,0,0,0,0,0,0,0,0,0]
-        modaLogReg = [0,0,0,0,0,0,0,0,0,0,0]
-        modaSGD = [0,0,0,0,0,0,0,0,0,0,0]
-        modaKNeigh = [0,0,0,0,0,0,0,0,0,0,0]
-        modaNB = [0,0,0,0,0,0,0,0,0,0,0]
-        modaRFC = [0,0,0,0,0,0,0,0,0,0,0]
-        modaSVC = [0,0,0,0,0,0,0,0,0,0,0]
-        modaAda = [0,0,0,0,0,0,0,0,0,0,0]
-        modaDTC = [0,0,0,0,0,0,0,0,0,0,0]
+        limite = int(dadosPaa.shape[0]/300)
+        print("\nlimite: {}\n".format(limite))
+        zeros = np.zeros((20,), dtype=int)
+        modaKmeans = zeros
+        hitsKmeans = zeros
+        modaGMM = zeros
+        hitsGMM = zeros
+        modaLogReg = zeros
+        hitsLogReg = zeros
+        modaSGD = zeros
+        hitsSGD = zeros
+        modaKNeigh = zeros
+        hitsKNeigh = zeros
+        modaNB = zeros
+        hitsNB = zeros
+        modaRFC = zeros
+        hitsRFC = zeros
+        modaSVC = zeros
+        hitsSVC = zeros
+        modaAda = zeros
+        hitsAda = zeros
+        modaDTC = zeros
+        hitsDTC = zeros
 
         verifica = pd.DataFrame(verificacao)
 
@@ -223,7 +238,9 @@ if __name__ == "__main__":
         linhaAdaBoostClassifier = verifica.iloc[k - 9]
         linhaDecisionTreeClassifier = verifica.iloc[k - 10]
 
-        for m in range(0,11):
+
+        for m in range(0,limite):
+            hits = np.zeros((20,), dtype=int)
             modKmeans = linhaKMeans[m * 300:299 + m * 300].mode()[0]
             modGMM = linhaGMM[m * 300:299 + m * 300].mode()[0]
             modLogReg = linhaLogisticRegression[m * 300:299 + m * 300].mode()[0]
@@ -234,22 +251,62 @@ if __name__ == "__main__":
             modSVC = linhaSVC[m * 300:299 + m * 300].mode()[0]
             modAda = linhaAdaBoostClassifier[m * 300:299 + m * 300].mode()[0]
             modDTC = linhaDecisionTreeClassifier[m * 300:299 + m * 300].mode()[0]
+            for n in range((m*300),(299+m*300)):
+                if linhaKMeans[n] == modKmeans:
+                    hits[0] += 1
+                if linhaGMM[n] == modGMM:
+                    hits[1] += 1
+                if linhaLogisticRegression[n] == modLogReg:
+                    hits[2] += 1
+                if linhaSGDClassifier[n] == modSGD:
+                    hits[3] += 1
+                if linhaKNeighborsClassifier[n] == modKNeigh:
+                    hits[4] += 1
+                if linhaGaussianNB[n] == modNB:
+                    hits[5] += 1
+                if linhaRandomForestClassifier[n] == modRFC:
+                    hits[6] += 1
+                if linhaSVC[n] == modSVC:
+                    hits[7] += 1
+                if linhaAdaBoostClassifier[n] == modAda:
+                    hits[8] += 1
+                if linhaDecisionTreeClassifier[n] == modDTC:
+                    hits[9] += 1
+
             #
             modaKmeans[m] = modKmeans
+            hitsKmeans[m] = (hits[0]*100/300)
             modaGMM[m] = modGMM
+            hitsGMM[m] = (hits[1]*100/300)
             modaLogReg[m] = modLogReg
+            hitsLogReg[m] = (hits[2]*100/300)
             modaSGD[m] = modSGD
+            hitsSGD[m] = (hits[3]*100/300)
             modaKNeigh[m] = modKNeigh
+            hitsKNeigh[m] = (hits[4]*100/300)
             modaNB[m] = modNB
+            hitsNB[m] = (hits[5]*100/300)
             modaRFC[m] = modRFC
+            hitsRFC[m] = (hits[6]*100/300)
             modaSVC[m] = modSVC
+            hitsSVC[m] = (hits[7]*100/300)
             modaAda[m] = modAda
+            hitsAda[m] = (hits[8]*100/300)
             modaDTC[m] = modDTC
+            hitsDTC[m] = (hits[9]*100/300)
 
         modas = pd.DataFrame({"modaKmeans":modaKmeans,"modaGMM":modaGMM,"modaLogReg":modaLogReg,
                              "modaSGD":modaSGD,"modaKNeigh":modaKNeigh,"modaNB":modaNB,"modaRFC":modaRFC,
                              "modaSVC":modaSVC,"modaAda":modaAda,"modaDTC":modaDTC})
         print("moda: \n{}".format(modas))
+
+        hitss = pd.DataFrame({"Accuracy Kmeans(%)": hitsKmeans, "Accuracy GMM(%)": hitsGMM, "Accuracy LogReg(%)": hitsLogReg,
+                              "Accuracy SGD(%)": hitsSGD, "Accuracy KNeigh(%)": hitsKNeigh, "Accuracy NB(%)": hitsNB, "Accuracy RFC(%)": hitsRFC,
+                              "Accuracy SVC(%)": hitsSVC, "Accuracy Ada(%)": hitsAda, "Accuracy DTC(%)": hitsDTC})
+        print("Acurácia: \n{}".format(hitss))
+
+        #print("hits kmeans test: \n{}".format(hitsKMeans))
+
 
         for n in range(3300):
             #for v in range(0,10,1):
