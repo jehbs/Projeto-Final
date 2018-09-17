@@ -140,7 +140,7 @@ def UnsupervisedKmeans(df, sample):
     from sklearn.cluster import KMeans
     dadosPaa = df
     components = int(dadosPaa.shape[0]/300)
-    print(components)
+    #print(components)
     startpts = np.zeros((components, dadosPaa.shape[1]))
     for i in range(0, components):
         startpts[i] = dadosPaa.iloc[150 + i * 300, :]

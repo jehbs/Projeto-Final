@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     conjunto = []
     conjunto1 = []
-    verificacao = np.zeros((10, 3300))
+    verificacao = np.zeros((10, 6000))
     dadosReduzidos = []
     dictData = {}
     df1 = pd.DataFrame()
@@ -75,9 +75,9 @@ if __name__ == "__main__":
             dadosOriginais.to_csv(csv,mode='w',sep=';')
         else:
             print("Obtendo dados do arquivo '{}' .".format(csv))
-            matriz = pd.read_csv(csv,sep=';')
+            dadosOriginais = pd.read_csv(csv,sep=';')
             #conjunto.append(matriz)
-            dadosOriginais = pd.DataFrame(matriz)
+            #dadosOriginais = pd.DataFrame(matriz)
 
         print("Leitura do arquivo terminada.\nSalvando características do circuito...")
 
@@ -97,6 +97,7 @@ if __name__ == "__main__":
         print("\nIniciando a aplicação do PAA")
         n_paa_segments = 100
         dadosPaa = AuxiliaryFunctions.ApplyPaa(n_paa_segments, matriz, dadosOriginais,circuito)
+        dataSize = dadosPaa.shape[0]
 
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         # Aplicação do PCA
@@ -136,7 +137,7 @@ if __name__ == "__main__":
                        LogisticRegression(random_state=20)]
 
         k=0
-        classifiers = [GaussianNB()]
+        #classifiers = [GaussianNB()]
         for clf in classifiers:
             acc_train_results, acc_test_results, \
             fscore_train_results, fscore_test_results, \
@@ -145,10 +146,10 @@ if __name__ == "__main__":
             print("Acurácia teste: {}\t Acurácia treino: {}\nFscore teste: {}\t Fscore treino: {}\n".format(
                 acc_test_results, acc_train_results, fscore_test_results, fscore_train_results))
             for ct in range(10):
-                rd = np.random.randint(0, 3300)
+                rd = np.random.randint(0, dataSize)
                 print("Predição do ponto {}: {}".format(rd, clfs.predict(dadosPaa.iloc[rd, :].values.reshape(1, -1))))
 
-            for j in range(3300):
+            for j in range(dataSize):
                 verificacao[k][j]= clfs.predict(dadosPaa.iloc[j, :].values.reshape(1, -1))
 
             fig6 = plt.figure()
@@ -176,10 +177,10 @@ if __name__ == "__main__":
             clts, preds = AuxiliaryFunctions.UnsupervisedPreds(reduced_data, pca_samples, clt, range_n_components)
 
             for ct in range(10):
-                rd = np.random.randint(0, 3300)
+                rd = np.random.randint(0, dataSize)
                 print("Predição do ponto {}: {}".format(rd, clts.predict(reduced_data.iloc[rd, :].values.reshape(1, -1))))
 
-            for j in range(3300):
+            for j in range(dataSize):
                 verificacao[k][j]= clts.predict(reduced_data.iloc[j, :].values.reshape(1, -1))
             k+=1
 
@@ -192,17 +193,16 @@ if __name__ == "__main__":
 
         #print("k do kmeans: {}".format(k))
         for ct in range(10):
-            rd = np.random.randint(0, 3300)
+            rd = np.random.randint(0, dataSize)
             print("Predição de {}: {}".format(rd, clts.predict(reduced_data.iloc[rd, :].values.reshape(1, -1))))
 
-        for j in range(3300):
+        for j in range(dataSize):
             verificacao[k][j] = clts.predict(reduced_data.iloc[j, :].values.reshape(1, -1))
 
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         # implementação dos teste de validação de resultado
         # =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         limite = int(dadosPaa.shape[0]/300)
-        print("\nlimite: {}\n".format(limite))
         zeros = np.zeros((20,), dtype=int)
         modaKmeans = zeros
         hitsKmeans = zeros
@@ -308,7 +308,7 @@ if __name__ == "__main__":
         #print("hits kmeans test: \n{}".format(hitsKMeans))
 
 
-        for n in range(3300):
+        for n in range(dataSize):
             #for v in range(0,10,1):
             #    if (modLinha[n]) == moda[v]:
             #        verifica.iloc[k-1][n] = v+1
@@ -355,7 +355,7 @@ if __name__ == "__main__":
         k = 0
         conjunto = []
         conjunto1 = []
-        verificacao = np.zeros((10, 3300))
+        verificacao = np.zeros((10, dataSize))
         dadosReduzidos = []
         dictData = {}
         df1 = pd.DataFrame()
