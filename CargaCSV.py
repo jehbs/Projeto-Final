@@ -1,4 +1,8 @@
-#Codigo principal
+# =-=-=-=-=-=-=-=-
+# Projeto de Conclusão de Curso
+# Autor: Jéssica Barbosa de Souza
+# Descrição : Código para fazer a leitua do arquivo .raw e escrita no arquivo.csv
+# =-=-=-=-=-=-=-=-
 import pandas as pd
 import LTSpice_RawRead as LTSpice
 import tslearn
@@ -6,10 +10,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import visuals as vs
 import random
-
-
 if __name__ == "__main__":
-    circuitos = ['Nonlinear Rectfier + 4bit PRBS [FALHA] - 300 - 0.2s.raw','Biquad Highpass Filter mc + 4bitPRBS [FALHA].raw', 'CTSV mc + 4bitPRBS [FALHA].raw']
+    circuitos = ['CTSV mc + 4bitPRBS [FALHA].raw','Nonlinear Rectfier + 4bit PRBS [FALHA] - 300 - 0.2s.raw','Biquad Highpass Filter mc + 4bitPRBS [FALHA].raw']
     for circuito in circuitos:
         saida,  dados, time = LTSpice.principal(circuito)
         print("leu")
@@ -17,10 +19,7 @@ if __name__ == "__main__":
         for dado in dados:
             if len(dado) > MaiorIndice:
                 MaiorIndice = len(dado)
-
-
         matriz = np.zeros((MaiorIndice, len(dados)))
-
         i = 0
         j = 0
         for k in range(0, len(saida._traces[10].data)):
@@ -37,6 +36,3 @@ if __name__ == "__main__":
         dadosOriginais = pd.DataFrame(matriz)
         dadosOriginais.to_csv(file_name, index=False, header=None, sep=';')
         print("escreveu")
-
-
-
