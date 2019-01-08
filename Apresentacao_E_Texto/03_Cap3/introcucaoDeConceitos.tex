@@ -1,0 +1,34 @@
+
+\chapter{Detecção de Falhas em circuitos}
+
+O diagnóstico de falhas é um grande desafio frente à crescente complexidade dos circuitos analógicos e de sinais mistos. Em primeiro lugar, os circuitos analógicos não possuem um padrão de saída pré-determinado como em circuitos digitais (Alto ou baixo), havendo para cada circuito características próprias de sinais, operações e restrições. Isto explica o pequeno número de modelos de falhas para estes tipos de circuitos, ao contrário que ocorre nos circuitos digitais. O segundo ponto é que, dependendo do tipo de detecção realizado, há dificuldade de se acessar o atributo desejado sem alterar as características do circuito. Por exemplo, existe uma dificuldade de medir correntes sem alterar as conexões originais do circuito \cite{BANDLER}. Outra razão para esta dificuldade está no fato de que um circuito analógico tem seus parâmetros definidos a partir dos componentes nele utilizados. Dessa forma, o número de combinações de falhas, ou de comportamentos normais, pode ser muito grande, o que torna o uso de métodos determinísticos pouco eficazes.
+
+
+Os métodos conhecidos em geral esbarram em dificuldades similares como grande volume de dados, dificuldade computacional e  variedade de falhas mesmo considerando o grande avanço tecnológico da computação\cite{DUHAMEL}.
+
+Nas últimas décadas, a pesquisa na área de diagnóstico de falhas concentrou-se em desenvolver ferramentas que simplifiquem o processo de diagnóstico \cite{FENTON}. As principais ferramentas utilizadas têm sido métodos de inteligência computacional para o diagnóstico. Mesmo tendo ocorrido progressos significativos, estas novas tecnologias ainda não são amplamente aceitas. Tais técnicas são normalmente baseadas na utilização de classificadores para a distinção entre as falhas, ao extrair atributos dos sinais de tensão e corrente do circuito quando submetido à alguma condição específica. Na sequência, submete-se o classificador a um treinamento e, avalia-se o desempenho da classificação na detecção das falhas no circuito. Entretanto, esta abordagem exige que as classes de falha sejam cuidadosamente escolhidas. Além disso, este tipo de classificador só é capaz de indicar classes de falha para as quais ele tenha sido treinado, caso contrário é necessário que se efetue o treinamento da classe desconhecida antes da análise para não haver a classificação incorreta da falha.
+
+\section{\textbf{Conceito Básico}}
+
+O termo falha é citado em trabalhos de diversas áreas. Em \cite{WEBER} é chamada de falha a causa física de um erro, a alteração que gera o defeito, que é o estado de desvio de um componente ou sistema, no caso da computação.
+Para o caso deste trabalho, definimos falha como o comportamento anormal ou o defeito em um componente, sistema ou dispositivo que pode levar a um mau funcionamento. Ou seja, a falha é a diminuição parcial ou total da capacidade de um sistema de desempenhar a função para o qual é projetado, por um certo período de tempo ou permanentemente \cite{lombardi}.
+
+\section{\textbf{Tipos de Falhas}}
+
+Os tipos de falhas que um circuito pode apresentar são bastante abrangentes. As falhas podem ser determinadas pelo seu tipo de desvio, por sua duração, pela quantidade de dispositivos a apresentar falha ao mesmo tempo, à sua observabilidade e à sua distinção.
+
+Quanto ao grau de desvio, uma falha é dita paramétrica quando a sua ocorrência está relacionada a um desvio do parâmetro no tempo, não alterando a topologia do circuito. Quando a falha possui um desvio extremo de parâmetro, ela é então chamada de falha catastrófica. Isto porque este tipo de falha está relacionado à perda de componentes do sistema, alterando a sua estrutura topológica, assim como a sua própria função de transferência \cite{LUO}. Por exemplo, em circuitos elétricos, circuito aberto e curto-circuito são falhas catastróficas \cite{DUHAMEL}.
+
+Quanto ao número de falhas simultâneas que ocorrem em um circuito, a falha é dita simples quando sua ocorrência é única, havendo a mudança paramétrica de um único componente. Por outro lado, a falha é dita múltipla quando, em sua ocorrência, há a mudança paramétrica de mais de um componente simultaneamente. Quanto à relação entre falhas, duas ou mais falhas são independentes se não existem relações de causa e efeito entre suas ocorrências, caso contrário, elas são dependentes \cite{lombardi}.
+
+Com relação à sua duração, uma falha é dita intermitente quando a sua ocorrência existe por um certo período de tempo aleatório e imprevisível, alternando-se entre o comportamento normal e anormal. Por outro lado, quando a ocorrência da falha é contínua ao longo do tempo, sendo o reparo do componente defeituoso a única solução para a sua interrupção, a falha é dita permanente. O termo transiente é também usado por alguns autores para classificar falhas causadas por mudanças temporárias no ambiente onde o circuito está operando. Por sua vez, o termo incipiente é utilizado para nomear falhas que evoluem gradualmente, tornando-se mais severas ao longo do tempo \cite{MANDERS}.
+
+Por fim, quanto à sua observabilidade, duas ou mais falhas são classificadas como mascaráveis quando suas ocorrências simultâneas ou progressivas podem compensar seus efeitos, tornando o sistema livre de erros sob certas condições \cite{lombardi}. Quando uma falha apresenta um efeito sobressalente à sua ocorrência no circuito, isolada ou simultânea, ela é chamada de falha dominante. As falhas são chamadas de indistintas quando os seus efeitos afetam o circuito de modo que seus efeitos sejam distinguíveis entre si.
+
+Por fim, as falhas inconfundíveis são aquelas cujo efeitos são atribuídos a uma única e determinada condição, podendo ser reveláveis em certas condições (detectáveis), ou não-detectáveis, caso contrário.
+
+Todos essas variações apresentadas fazem o diagnostico ser algo complexo e relevante para as pesquisas. 
+
+
+
+

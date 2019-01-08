@@ -1,0 +1,40 @@
+\noindent\textbf{CONCLUSÃO}
+$\!$\\
+
+
+
+O desenvolvimento de estratégias de teste para detectar e diagnosticar falhas em
+circuitos analógicos e de sinais mistos é uma tarefa complexa. Existem muitos fatores que
+contribuem para o aumento da dificuldade no teste destes circuitos tais como: a necessidade de alterar conexões para medir correntes, a falta de bons modelos de falha, a falta de um
+padrão para projeto de circuitos analógicos com vistas a testabilidade e a crescente
+importância das falhas temporais. Além disso, os métodos clássicos necessitam de grande
+poder computacional se a identificação de parâmetros for utilizada ou caso haja um grande número
+de simulações, como no caso de um dicionário de falhas.
+
+Esse desafio tem estimulado o desenvolvimento de ferramentas que buscam facilitar
+os procedimentos de detecção de falhas. Em particular o uso de técnicas de Inteligência
+Computacional tem sido amplamente empregado, sobretudo através da utilização de
+classificadores para identificação de componentes defeituosos.
+
+Este trabalho apresentou um sistema de detecção de falhas para circuitos lineares utilizando  oito diferentes algoritmos de aprendizagem de máquinas. Esse algoritmos foram escolhidos devido sua recorrência na literatura científica. No processo de classificação foram elaboradas algumas etapas: Simulação dos circuitos, extração e limpeza do dados, processamento de redução de dimensão para finalmente o conjunto de treino ser submetido ao algoritmo de classificação e finalizando com a predição com o conjunto de teste. 
+
+Os quatro diferentes circuitos utilizados são o Sallen key, Filtro Passa Alta (Biquad), Filtro universal (CTSV) e o retificador não linear. Os métodos de limpeza e redução foram o PAA e PCA, além de técnicas de ETL com Pandas. 
+
+O resultado da predição foi verificado, e então calculado o percentual de acerto de cada um dos algoritmos para cada um dos circuitos. A quantidade percentual de acertos é exibida na \ref{tab:resultadoFinal}.
+
+Após uma analise geral podemos afirmar quais métodos apresentam uma boa taxa de acerto ou não. Para trabalhos futuros a arvore de decisão por exemplo não precisa ser testado, pois sua ineficiência já foi comprovada.  Em contrapartida, o AdaBoost com o floresta aleatória apresenta uma predição tão elevada que o valida como sendo o melhor do trabalho em questão e o ideal a ser reaplicado em evoluções futuras. 
+
+
+% Please add the following required packages to your document preamble:
+% \usepackage[table,xcdraw]{xcolor}
+% If you use beamer only pass "xcolor=table" option, i.e. \documentclass[xcolor=table]{beamer}
+
+
+
+
+
+
+
+
+
+
