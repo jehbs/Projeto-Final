@@ -1,0 +1,15 @@
+\noindent\textbf{INTRODUÇÃO}
+$\!$\\
+
+
+A otimização de tarefas manuais é uma necessidade em diversos campos de pesquisa, e nesse sentido o desenvolvimento de estratégias de teste visando detectar e diagnosticar falhas em circuitos analógicos ou digitais tem se mostrado uma tarefa desafiadora e encorajadora, de uma boa quantidade de pesquisas, devido ao grande número de aplicações que demandam testes e ao alto custo dos mesmos. Muitas áreas, tais como telecomunicações, multimídia e aplicações biomédicas, precisam de bom desempenho em aplicações de alta frequência, baixo ruído e baixa potência, o que somente pode ser alcançado usando circuitos integrados analógicos e de sinais mistos. Assim, automatizar os processos de detecção e diagnóstico de falhas nesses circuitos é muito importante\cite{ALBUSTANI}.
+
+Com a evolução dos processos de eletrônica, circuitos foram cada vez mais encapsulados: o que antes continha um componente, agora contém um circuito inteiro. Neste nível de integração, esse tipo de circuito gera problemas difíceis de teste e projeto. As causas são a falta de bons modelos de falhas, falta de um padrão de projeto com vistas à testabilidade e o aumento da importância das falhas relacionadas ao tempo . Portanto, a estratégia de testes para detecção e diagnóstico de falhas ainda é severamente dependente da perícia e da experiência que os engenheiros têm sobre as características do circuito. Assim, a detecção e a identificação de falhas é  um processo interativo e que consome bastante tempo \cite{amaral}. 
+
+Nas últimas décadas, uma boa quantidade de pesquisas em diagnósticos de falhas foi concentrada em desenvolver ferramentas que facilitassem as tarefas de diagnóstico. Embora tenha havido progressos importantes, essas novas tecnologias não tem sido largamente aceitas. Isso motiva os pesquisadores a desenvolver novas estratégias para o diagnóstico.  
+
+Estratégias envolvendo classificadores procuram por comportamentos específicos de falhas e tornam-se vulneráveis quando existe superposição dos padrões de falha ou quando têm que tratar padrões de falha que não foram apresentados a eles durante a fase de treinamento. Considerando que no conjunto de falhas apresentado não há superposição, esse método se torna eficaz e assertivo.
+
+Este trabalho apresenta o desenvolvimento de um sistema de detecção de falhas para circuitos lineares e invariantes no tempo, onde o comportamento do circuito é representado pela Aproximação Agregada por Partes (PAA - Piecewise Aggregate Approximation) da resposta ao impulso do circuito. Os experimentos são realizados nos circuitos "Filtro Passa-Banda Sallen Key", "Filtro Universal", "Retificador Não-Linear" e "CTSV" (Continuous-Time State-Variable). Para cada um dos circuitos foram executados diferentes algoritmos de predição a fim de determinar qual algoritmo atinge a melhor precisão.
+
+Este trabalho é dividido da seguinte forma: o capítulo 1 apresenta a justificativa e objetivos; o capítulo 2 aborda a detecção de falhas e seus os conceitos básicos; o capítulo 3 apresenta os algoritmos utilizados e seu conceito; o capítulo 4 descreve o estudo de caso para cada um dos circuitos.  
